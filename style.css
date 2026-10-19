@@ -2562,6 +2562,142 @@ table.data tfoot td {
     margin-bottom: 6px;
 }
 
+/* ---------- الصفحات الداخلية: عنوان كبير هادئ على طريقة Apple ---------- */
+
+.page-title {
+    gap: 18px;
+    padding: 6px 2px 22px;
+    margin-bottom: 26px;
+    border-bottom: 0;
+    position: relative;
+}
+
+.page-title::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--line-strong) 20%, var(--gold-300) 50%, var(--line-strong) 80%, transparent);
+}
+
+.page-icon {
+    width: 58px;
+    height: 58px;
+    border-radius: 18px;
+    font-size: 28px;
+}
+
+.page-title h1 {
+    font-size: clamp(24px, 1.2vw + 17px, 38px);
+    line-height: 1.35;
+}
+
+.page-title p {
+    font-size: var(--fs-base);
+    margin-top: 2px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .page-title > * { animation: riseIn 0.7s var(--ease) both; }
+    .page-title > :nth-child(2) { animation-delay: 0.06s; }
+    .page-title > :nth-child(3) { animation-delay: 0.12s; }
+}
+
+.crumbs {
+    margin-bottom: 10px;
+}
+
+.section-head h2 {
+    font-size: clamp(19px, 0.7vw + 15px, 25px);
+}
+
+.section-head h2 .ti {
+    width: 34px;
+    height: 34px;
+    border-radius: 11px;
+    font-size: 19px;
+}
+
+.main-content:has(.hero-xl) .section-head h2 {
+    font-size: var(--fs-display-2);
+}
+
+.main-content:has(.hero-xl) .section-head h2 .ti {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    font-size: 22px;
+}
+
+.verbatim,
+.example-box,
+.gap-box,
+.note-box {
+    border-radius: var(--r-lg);
+}
+
+.table-wrap {
+    border-radius: var(--r-lg);
+}
+
+.result {
+    position: relative;
+    border-radius: var(--r-lg);
+    box-shadow: var(--sh-1);
+    transition: border-color 0.2s, transform 0.45s var(--ease), box-shadow 0.45s var(--ease);
+}
+
+.result:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--sh-lift);
+}
+
+.nav-link {
+    border-radius: var(--r-md);
+    transition: background 0.18s, color 0.18s, transform 0.3s var(--ease);
+}
+
+.nav-link:active {
+    transform: scale(0.98);
+}
+
+.icon-btn {
+    border-radius: var(--r-pill);
+}
+
+.btn:active {
+    transform: scale(0.97);
+}
+
+.chip {
+    padding: 4px 12px;
+}
+
+.tree-search input {
+    border-radius: var(--r-pill);
+}
+
+.table-tools input,
+.field select,
+.field input:not([type="checkbox"]) {
+    border-radius: var(--r-pill);
+    padding-inline: 16px;
+}
+
+.summary-box {
+    border-radius: var(--r-lg);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+        .main-content .result {
+            animation: reveal linear both;
+            animation-timeline: view();
+            animation-range: entry 0% cover 14%;
+        }
+    }
+}
+
 /* ---------- نقاط التوقف ---------- */
 
 @media (max-width: 1024px) {
