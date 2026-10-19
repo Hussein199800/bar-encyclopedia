@@ -329,6 +329,11 @@ function snippet(raw, terms, len) {
         const m = re.exec(text);
         if (m) start = Math.max(0, m.index - 70);
     }
+    /* لا يبدأ المقتطف من منتصف كلمة */
+    if (start > 0) {
+        const space = text.indexOf(" ", start);
+        if (space !== -1 && space < start + 20) start = space + 1;
+    }
     let s = text.slice(start, start + len);
     if (start > 0) s = "… " + s;
     if (start + len < text.length) s += " …";
@@ -477,20 +482,31 @@ function viewHome() {
     const quick = ["registration-conditions", "agency-basics", "agency-fees", "appeals-map", "discipline-penalties", "coop-fund", "amb-fund", "tak-fund"];
     const transcribed = DOCS.filter(function (d) { return d.quality === "transcribed"; });
     const missing = DOCS.filter(function (d) { return d.missing.length; });
-    return '<section class="hero">' +
-        "<small>نقابة المحامين في الجمهورية العربية السورية وفروعها</small>" +
-        "<h1>موسوعة النقابة القانونية والمالية</h1>" +
-        "<p>النصوص الكاملة لقانون تنظيم المهنة والأنظمة الداخلية والمالية والصناديق ومرجع الوكالات، مع شرح مبسط لكل موضوع ودليل للمسؤوليات وأدوات حساب — وكل معلومة مربوطة بمادتها وصفحتها.</p>" +
-        '<form class="hero-search" data-act="hero-search" role="search"><i class="ti ti-search" aria-hidden="true"></i>' +
+    const facts = [
+        [DOCS.length, "وثائق رسمية كاملة"],
+        [fmt(nArticles), "مادة وقاعدة قابلة للبحث"],
+        [(ENC.topics || []).length, "موضوعاً مشروحاً"],
+        [(ENC.tools || []).length, "أداة وقائمة تدقيق"]
+    ];
+    const ribbon = DOCS.map(function (d) {
+        return '<li><a href="#/doc/' + d.id + '">' + dot(d.id) + esc(d.short) + "</a></li>";
+    }).join("");
+    return '<section class="hero hero-xl">' +
+        '<div class="hero-aurora" aria-hidden="true"><i></i><i></i><i></i></div><div class="hero-grid" aria-hidden="true"></div>' +
+        '<small class="eyebrow rise d1">نقابة المحامين في الجمهورية العربية السورية وفروعها</small>' +
+        '<h1><span class="rise d2" style="display:block">موسوعة النقابة</span><span class="accent rise d3">القانونية والمالية</span></h1>' +
+        '<p class="rise d4">النصوص الكاملة لقانون تنظيم المهنة والأنظمة الداخلية والمالية والصناديق ومرجع الوكالات، مع شرح مبسط لكل موضوع ودليل للمسؤوليات وأدوات حساب — وكل معلومة مربوطة بمادتها وصفحتها.</p>' +
+        '<form class="hero-search rise d5" data-act="hero-search" role="search"><i class="ti ti-search" aria-hidden="true"></i>' +
         '<input type="search" name="q" placeholder="ما الذي تبحث عنه؟ مثلاً: شروط التسجيل، مهلة الطعن، طابع المرافعة" aria-label="بحث"></form>' +
-        '<div class="hero-tags">' + ["شطب حكمي", "مدة التمرين", "أمين الصندوق", "معونة الوفاة", "م 57", "الوكالة العدلية", "رسم الانتساب"].map(function (t) {
+        '<div class="hero-tags rise d5">' + ["شطب حكمي", "مدة التمرين", "أمين الصندوق", "معونة الوفاة", "م 57", "الوكالة العدلية", "رسم الانتساب"].map(function (t) {
             return '<a href="#/search?q=' + encodeURIComponent(t) + '">' + esc(t) + "</a>";
-        }).join("") + "</div></section>" +
-        '<div class="stats">' +
-        '<div class="stat"><b>' + DOCS.length + "</b><span>وثائق رسمية كاملة</span></div>" +
-        '<div class="stat"><b>' + fmt(nArticles) + "</b><span>مادة وقاعدة قابلة للبحث</span></div>" +
-        '<div class="stat"><b>' + (ENC.topics || []).length + "</b><span>موضوعاً مشروحاً</span></div>" +
-        '<div class="stat"><b>' + (ENC.tools || []).length + "</b><span>أداة وقائمة تدقيق</span></div></div>" +
+        }).join("") + "</div>" +
+        '<ul class="hero-facts rise d5" aria-label="الموسوعة بالأرقام">' + facts.map(function (f) {
+            return "<li><b>" + f[0] + "</b><span>" + f[1] + "</span></li>";
+        }).join("") + "</ul></section>" +
+        '<nav class="ribbon" aria-label="الوثائق السبع"><div class="ribbon-track">' +
+        '<ul class="ribbon-group">' + ribbon + "</ul>" +
+        '<ul class="ribbon-group" aria-hidden="true">' + ribbon.replace(/<a /g, '<a tabindex="-1" ') + "</ul></div></nav>" +
 
         '<div class="section-head"><h2><i class="ti ti-bolt" aria-hidden="true"></i> الأكثر استخداماً</h2><a href="#/topics">كل الموضوعات</a></div>' +
         '<div class="grid cols-4">' + quick.map(function (id) {
@@ -586,8 +602,108 @@ function viewDoc(id) {
         '<div class="doc-meta" style="margin:-8px 0 16px">' + qualityBadge(d) + '<span class="chip">' + d.articles.length + " " + articleCountLabel(d) + "</span>" +
         '<span class="chip">المصدر: sources/' + esc(d.file) + "</span></div>" +
         (notes.length ? '<div class="note-box" style="margin-bottom:16px"><ul class="block-list">' + notes.map(function (n) { return "<li>" + esc(n) + "</li>"; }).join("") + "</ul></div>" : "") +
-        '<section class="card"><h2><i class="ti ti-list-tree" aria-hidden="true"></i> الفهرس: الأبواب والفصول والمواد</h2>' +
-        d.toc.map(function (n) { return tocPartHTML(d, n, 0); }).join("") + "</section>";
+        docFactsHTML(d) +
+        '<div class="doc-toolbar">' +
+        '<div class="doc-filter"><i class="ti ti-filter" aria-hidden="true"></i>' +
+        '<input type="search" data-doc-filter="' + id + '" placeholder="ابحث داخل هذه الوثيقة: كلمة أو رقم مادة…" aria-label="البحث داخل الوثيقة" autocomplete="off"></div>' +
+        '<div class="doc-tabs" role="tablist" aria-label="أبواب الوثيقة">' +
+        '<button type="button" class="doc-tab" role="tab" data-act="doc-tab" data-part="all" aria-selected="false"><b>الكل</b><small>' + d.articles.length + " " + articleCountLabel(d) + "</small></button>" +
+        d.toc.map(function (n, i) {
+            return '<button type="button" class="doc-tab" role="tab" data-act="doc-tab" data-part="' + i + '" aria-selected="' + (i === 0) + '" aria-controls="part-' + i + '">' +
+                "<b>" + esc(n.label || n.title) + "</b>" + (n.label && n.title ? "<small>" + esc(n.title) + "</small>" : "") + "</button>";
+        }).join("") + "</div>" +
+        '<p class="doc-status" role="status" aria-live="polite"></p></div>' +
+        d.toc.map(function (n, i) { return partPanelHTML(d, n, i); }).join("") +
+        '<div class="doc-empty" data-doc-empty hidden><i class="ti ti-search-off" aria-hidden="true"></i>لا توجد مادة تطابق بحثك في هذه الوثيقة. جرّب كلمة أخرى، أو ابحث في <a href="#/search">كل الموسوعة</a>.</div>';
+}
+
+/* حقائق الوثيقة: أرقام محسوبة من النص نفسه فقط */
+function docFactsHTML(d) {
+    const facts = [
+        ["file-text", "عدد " + (d.id === "agn" ? "البنود" : "المواد"), d.articles.length],
+        ["list-tree", "الأقسام الرئيسية في الفهرس", d.toc.length],
+        [d.quality === "text" ? "file-check" : "scan", "جودة النص", d.quality === "text" ? "مستخرج من الملف" : "منسوخ من صور"],
+        [d.missing.length ? "file-alert" : "circle-check", "مواد ناقصة في النسخة", d.missing.length ? d.missing.length : "لا يوجد"]
+    ];
+    return '<ul class="doc-facts" aria-label="عن الوثيقة">' + facts.map(function (f) {
+        return '<li><i class="ti ti-' + f[0] + '" aria-hidden="true"></i><span>' + esc(f[1]) + "</span><b>" + esc(String(f[2])) + "</b></li>";
+    }).join("") + "</ul>";
+}
+
+/* لوحة باب واحد: عنوانه، ثم فصوله، ومواده بطاقاتٍ تُفتح لقراءة النص الحرفي */
+function partPanelHTML(d, node, i) {
+    return '<section class="part-panel" id="part-' + i + '" role="tabpanel" data-part="' + i + '"' + (i === 0 ? "" : " hidden") + ">" +
+        '<header class="part-head"><h2>' + esc((node.label ? node.label + " — " : "") + node.title) + "</h2><span>" +
+        countArticles(node) + " " + articleCountLabel(d) + (node.page ? " · من صفحة " + node.page : "") + "</span></header>" +
+        nodeCardsHTML(d, node, 0) + "</section>";
+}
+
+function nodeCardsHTML(d, node, depth) {
+    const head = depth > 0 ? '<h3 class="chapter-head">' + esc((node.label ? node.label + " — " : "") + node.title) + "</h3>" : "";
+    const cards = node.articles.length ? '<div class="art-grid">' + node.articles.map(function (k) { return artCardHTML(d, d.byKey[k], null); }).join("") +
+        missingCardsIn(d, node) + "</div>" : "";
+    return head + cards + node.children.map(function (c) { return nodeCardsHTML(d, c, depth + 1); }).join("");
+}
+
+function artCardHTML(d, a, terms) {
+    const unclear = a.paras.some(function (p) { return p.indexOf("[؟]") !== -1; });
+    const text = a.paras.join(" ");
+    const excerpt = terms ? snippet(text, terms, 170) : unclearMarks(esc(text.length > 170 ? text.slice(0, 170) + "…" : text));
+    return '<details class="art-card' + (unclear ? " has-unclear" : "") + '" data-k="' + esc(a.key) + '">' +
+        '<summary><span class="art-num">' + esc(a.num || "§") + "</span><span><b>" + (terms ? highlight(a.label, terms) : esc(a.label)) + "</b>" +
+        '<span class="art-excerpt">' + excerpt + "</span></span>" +
+        '<span class="art-chevron" aria-hidden="true"><i class="ti ti-chevron-down"></i></span></summary>' +
+        '<div class="art-body"><div class="verbatim article-text">' + a.paras.map(function (p, i) { return paraHTML(p, i, terms); }).join("") + "</div>" +
+        '<div class="art-actions"><a class="btn small" href="' + articleUrl(a) + '"><i class="ti ti-external-link" aria-hidden="true"></i> صفحة المادة</a>' +
+        '<button type="button" class="btn small" data-act="copy-article" data-doc="' + d.id + '" data-key="' + esc(a.key) + '"><i class="ti ti-copy" aria-hidden="true"></i> نسخ مع المصدر</button>' +
+        (a.page ? sourceLink(d, a.page, "صفحة " + a.page + " في الأصل") : "") + "</div></div></details>";
+}
+
+/* المواد غير الموجودة في النسخة المرفقة تظهر في موضعها، دون أي نص */
+function missingCardsIn(d, node) {
+    const html = missingIn(d, node);
+    if (!html) return "";
+    return html.replace(/<span class="missing"[^>]*>(\d+)؟<\/span>/g, function (_, n) {
+        return '<div class="art-missing"><span class="art-num">' + n + '</span>المادة ' + n + " غير موجودة في النسخة المرفقة — لم نكتب لها أي نص.</div>";
+    });
+}
+
+/* تبويبات الأبواب والبحث داخل الوثيقة */
+function showDocPart(part) {
+    const main = document.getElementById("main");
+    main.querySelectorAll(".doc-tab").forEach(function (b) { b.setAttribute("aria-selected", String(b.dataset.part === part)); });
+    main.querySelectorAll(".part-panel").forEach(function (p) { p.hidden = part !== "all" && p.dataset.part !== part; });
+}
+
+function filterDoc(id, q) {
+    const d = DOC[id];
+    const main = document.getElementById("main");
+    const terms = tokens(q);
+    const status = main.querySelector(".doc-status");
+    let shown = 0;
+    if (terms.length) showDocPart("all");
+    main.querySelectorAll(".art-card").forEach(function (card) {
+        const a = d.byKey[card.dataset.k];
+        a.tokens = a.tokens || tokens(a.label + " " + a.num + " " + a.paras.join(" "));
+        const ok = !terms.length || terms.every(function (t) { return a.tokens.some(function (w) { return w === t || w.startsWith(t); }); });
+        card.hidden = !ok;
+        if (ok) {
+            shown++;
+            const wasOpen = card.open;
+            card.outerHTML = artCardHTML(d, a, terms.length ? terms : null).replace("<details ", wasOpen ? "<details open " : "<details ");
+        }
+    });
+    main.querySelectorAll(".art-missing").forEach(function (m) { m.hidden = !!terms.length; });
+    main.querySelectorAll(".chapter-head").forEach(function (h) {
+        let el = h.nextElementSibling;
+        h.hidden = !!terms.length && !(el && el.classList.contains("art-grid") && el.querySelector(".art-card:not([hidden])"));
+    });
+    main.querySelectorAll(".part-panel").forEach(function (p) {
+        if (terms.length) p.hidden = !p.querySelector(".art-card:not([hidden])");
+    });
+    if (!terms.length) showDocPart("0");
+    main.querySelector("[data-doc-empty]").hidden = !terms.length || shown > 0;
+    status.textContent = terms.length ? "عدد المواد المطابقة: " + shown : "";
 }
 
 function paraHTML(p, i, terms) {
@@ -1380,6 +1496,7 @@ function init() {
         if (!act) return;
         const a = act.dataset.act;
         if (a === "print") window.print();
+        if (a === "doc-tab") showDocPart(act.dataset.part);
         if (a === "jump") {
             e.preventDefault();
             const el = document.querySelector(act.getAttribute("href"));
@@ -1401,6 +1518,23 @@ function init() {
             goSearch(e.target.q.value);
         }
     });
+    document.addEventListener("input", function (e) {
+        const f = e.target.closest("input[data-doc-filter]");
+        if (f) filterDoc(f.dataset.docFilter, f.value);
+    });
+
+    /* الشريط العلوي يصبح زجاجياً بعد بدء التمرير */
+    const topbar = document.querySelector(".topbar");
+    let scrollFrame = 0;
+    function syncTopbar() {
+        scrollFrame = 0;
+        topbar.classList.toggle("scrolled", window.scrollY > 8);
+    }
+    window.addEventListener("scroll", function () {
+        if (!scrollFrame) scrollFrame = requestAnimationFrame(syncTopbar);
+    }, { passive: true });
+    syncTopbar();
+
     document.addEventListener("change", function (e) {
         const cb = e.target.closest("input[data-cl]");
         if (!cb) return;
