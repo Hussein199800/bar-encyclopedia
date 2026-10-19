@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+
+    <!-- الوضع النهاري/الليلي قبل رسم الصفحة (بلا وميض). مفاتيح التخزين تبدأ بـ enc_ فقط. -->
+    <script>
+        (function () {
+            var t = null;
+            try { t = localStorage.getItem("enc_ui_theme"); } catch (e) {}
+            if (t !== "dark" && t !== "light") {
+                t = window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+            }
+            document.documentElement.setAttribute("data-theme", t);
+        })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>موسوعة نقابة المحامين</title>
+    <meta name="description" content="موسوعة قانونية وإدارية ومالية لنقابة المحامين السورية وفروعها: قانون تنظيم المهنة، النظام الداخلي، النظام المالي، صناديق التعاون والإسعاف والتكافل، ومرجع الوكالات القضائية.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css">
+    <meta name="theme-color" content="#123c35">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='2' y='2' width='60' height='60' rx='17' fill='%230e6150'/%3E%3Cg fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M32 21C26.5 17 19 16.5 13 18.5V43.5C19 41.5 26.5 42 32 46Z'/%3E%3Cpath d='M32 21C37.5 17 45 16.5 51 18.5V35'/%3E%3Cpath d='M32 46C34.5 44.2 37.2 43.1 40 42.6'/%3E%3C/g%3E%3Ccircle cx='47' cy='45.5' r='10.5' fill='%23c9a24a' stroke='%230b4d40' stroke-width='3'/%3E%3Ctext x='47' y='50' font-size='13' font-weight='700' text-anchor='middle' fill='%23fff' font-family='serif'%3E%C2%A7%3C/text%3E%3C/svg%3E">
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <a class="skip-link" href="#main">تخطٍّ إلى المحتوى</a>
+
+    <div class="app">
+
+        <aside class="sidebar" id="sidebar" aria-label="القائمة الرئيسية">
+
+            <div class="sidebar-head">
+                <a class="brand" href="#/">
+                    <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
+                        <rect class="bm-tile" x="2" y="2" width="60" height="60" rx="17"/>
+                        <g class="bm-ink" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M32 21 C26.5 17 19 16.5 13 18.5 V43.5 C19 41.5 26.5 42 32 46 Z"/>
+                            <path d="M32 21 C37.5 17 45 16.5 51 18.5 V35"/>
+                            <path d="M32 46 C34.5 44.2 37.2 43.1 40 42.6"/>
+                            <path d="M18 25.5 C21.5 24.7 24.8 24.9 27.5 26" stroke-width="2"/>
+                            <path d="M18 31.5 C21.5 30.7 24.8 30.9 27.5 32" stroke-width="2"/>
+                            <path d="M18 37.5 C21.5 36.7 24.8 36.9 27.5 38" stroke-width="2"/>
+                            <path d="M36.5 26 C39.2 24.9 42.5 24.7 46 25.5" stroke-width="2"/>
+                            <path d="M36.5 32 C39.2 30.9 42.5 30.7 46 31.5" stroke-width="2"/>
+                        </g>
+                        <circle class="bm-badge" cx="47" cy="45.5" r="10.5"/>
+                        <text x="47" y="50.2" font-size="13" font-weight="700" text-anchor="middle" fill="#ffffff" font-family="serif">§</text>
+                    </svg>
+                    <span>
+                        <small>نقابة المحامين — سورية</small>
+                        <strong>موسوعة النقابة</strong>
+                    </span>
+                </a>
+                <button type="button" class="icon-btn menu-close" id="menuClose" aria-label="إغلاق القائمة"><i class="ti ti-x" aria-hidden="true"></i></button>
+            </div>
+
+            <nav class="nav" id="mainNav" aria-label="أقسام الموسوعة"></nav>
+
+            <div>
+                <p class="nav-label">الوثائق والفهارس</p>
+                <div class="tree-search">
+                    <i class="ti ti-filter" aria-hidden="true"></i>
+                    <input type="search" id="treeFilter" placeholder="تصفية الفهرس…" aria-label="تصفية فهرس الوثائق">
+                </div>
+                <div class="tree" id="docTree"></div>
+            </div>
+
+            <div class="sidebar-foot">
+                <span>نصوص النقابة كما وردت في الملفات</span>
+                <button type="button" class="icon-btn" id="themeToggle" aria-label="تبديل الوضع الليلي"><i class="ti ti-moon" aria-hidden="true"></i></button>
+            </div>
+
+        </aside>
+
+        <div class="nav-overlay" id="navOverlay"></div>
+
+        <div class="app-main">
+
+            <header class="topbar">
+                <button type="button" class="icon-btn menu-toggle" id="menuToggle" aria-label="فتح القائمة"><i class="ti ti-menu-2" aria-hidden="true"></i></button>
+                <form class="global-search" id="globalSearch" role="search" autocomplete="off">
+                    <i class="ti ti-search" aria-hidden="true"></i>
+                    <input type="search" id="q" placeholder="ابحث في كل المواد والموضوعات: «شطب»، «م 57»، «صندوق الإسعاف»، «الخازن»…" aria-label="البحث في الموسوعة" aria-autocomplete="list" aria-controls="suggest">
+                    <kbd>Ctrl K</kbd>
+                    <div class="suggest" id="suggest" role="listbox" hidden></div>
+                </form>
+            </header>
+
+            <main class="main-content" id="main" tabindex="-1"></main>
+
+        </div>
+
+    </div>
+
+    <script src="data/docs.js"></script>
+    <script src="data/content-core.js"></script>
+    <script src="data/topics-a.js"></script>
+    <script src="data/topics-b.js"></script>
+    <script src="data/topics-c.js"></script>
+    <script src="data/tools.js"></script>
+    <script src="app.js"></script>
+
+</body>
+
+</html>
