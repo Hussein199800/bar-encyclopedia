@@ -560,12 +560,13 @@ function articleCountLabel(d) {
 function tocPartHTML(d, node, depth) {
     const label = (node.label ? node.label + " — " : "") + node.title;
     const count = countArticles(node);
-    const arts = node.articles.length ? '<div class="art-links">' + node.articles.map(function (k) {
+    const arts = node.articles.length ? '<div class="art-links">' + withMissing(d, node).map(function (k) {
+        if (typeof k === "number") return '<span class="missing" title="غير موجودة في النسخة المرفقة">' + k + "؟</span>";
         const a = d.byKey[k];
         const unclear = a.paras.some(function (p) { return p.indexOf("[؟]") !== -1; });
         const short = a.num ? a.num : a.label;
         return '<a href="' + articleUrl(a) + '"' + (unclear ? ' class="has-unclear" title="فيها موضع غير واضح"' : ' title="' + esc(a.label) + '"') + ">" + esc(short) + "</a>";
-    }).join("") + missingIn(d, node) + "</div>" : "";
+    }).join("") + "</div>" : "";
     if (depth === 0) {
         return '<details class="toc-part" open><summary>' + esc(label) + '<span class="count">' + count + "</span></summary>" +
             '<div class="toc-body">' + arts + node.children.map(function (c) { return tocPartHTML(d, c, 1); }).join("") + "</div></details>";
@@ -578,16 +579,23 @@ function countArticles(node) {
     return node.articles.length + node.children.reduce(function (s, c) { return s + countArticles(c); }, 0);
 }
 
-/* أرقام المواد الناقصة تظهر في موضعها من الفهرس */
-function missingIn(d, node) {
-    if (!d.missing.length || !node.articles.length) return "";
-    const nums = node.articles.map(function (k) { return parseInt(d.byKey[k].num, 10); }).filter(function (n) { return !isNaN(n); });
-    if (!nums.length) return "";
+/* مفاتيح مواد الموضع مع أرقام المواد الناقصة في مكانها: الناقصة داخل مداه، ثم السلسلة المتصلة بعد آخر مادة فيه */
+function withMissing(d, node) {
+    const keys = node.articles.slice();
+    if (!d.missing.length) return keys;
+    const numOf = function (k) { return parseInt(d.byKey[k].num, 10); };
+    const nums = keys.map(numOf).filter(function (n) { return !isNaN(n); });
+    if (!nums.length) return keys;
     const min = Math.min.apply(null, nums), max = Math.max.apply(null, nums);
-    /* الناقصة داخل مدى هذا الموضع، ثم السلسلة المتصلة التي تلي آخر مادة فيه فقط */
-    const after = d.missing.filter(function (m) { return m > min && m < max && !d.byKey[String(m)]; });
-    for (let m = max + 1; d.missing.indexOf(m) !== -1 && !d.byKey[String(m)]; m++) after.push(m);
-    return after.map(function (m) { return '<span class="missing" title="غير موجودة في النسخة المرفقة">' + m + "؟</span>"; }).join("");
+    const miss = d.missing.filter(function (m) { return m > min && m < max && !d.byKey[String(m)]; });
+    for (let m = max + 1; d.missing.indexOf(m) !== -1 && !d.byKey[String(m)]; m++) miss.push(m);
+    const out = [];
+    keys.forEach(function (k) {
+        const n = numOf(k);
+        while (miss.length && !isNaN(n) && miss[0] < n) out.push(miss.shift());
+        out.push(k);
+    });
+    return out.concat(miss);
 }
 
 function viewDoc(id) {
@@ -642,8 +650,9 @@ function partPanelHTML(d, node, i) {
 
 function nodeCardsHTML(d, node, depth) {
     const head = depth > 0 ? '<h3 class="chapter-head">' + esc((node.label ? node.label + " — " : "") + node.title) + "</h3>" : "";
-    const cards = node.articles.length ? '<div class="art-grid">' + node.articles.map(function (k) { return artCardHTML(d, d.byKey[k], null); }).join("") +
-        missingCardsIn(d, node) + "</div>" : "";
+    const cards = node.articles.length ? '<div class="art-grid">' + withMissing(d, node).map(function (k) {
+        return typeof k === "number" ? missingCardHTML(k) : artCardHTML(d, d.byKey[k], null);
+    }).join("") + "</div>" : "";
     return head + cards + node.children.map(function (c) { return nodeCardsHTML(d, c, depth + 1); }).join("");
 }
 
@@ -662,12 +671,8 @@ function artCardHTML(d, a, terms) {
 }
 
 /* المواد غير الموجودة في النسخة المرفقة تظهر في موضعها، دون أي نص */
-function missingCardsIn(d, node) {
-    const html = missingIn(d, node);
-    if (!html) return "";
-    return html.replace(/<span class="missing"[^>]*>(\d+)؟<\/span>/g, function (_, n) {
-        return '<div class="art-missing"><span class="art-num">' + n + '</span>المادة ' + n + " غير موجودة في النسخة المرفقة — لم نكتب لها أي نص.</div>";
-    });
+function missingCardHTML(n) {
+    return '<div class="art-missing"><span class="art-num">' + n + '</span>المادة ' + n + " غير موجودة في النسخة المرفقة — لم نكتب لها أي نص.</div>";
 }
 
 /* تبويبات الأبواب والبحث داخل الوثيقة */
