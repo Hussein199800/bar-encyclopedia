@@ -1,0 +1,13 @@
+{
+  "name": "bar-encyclopedia-video",
+  "private": true,
+  "type": "module",
+  "description": "Records and edits the encyclopedia explainer video (Playwright + edge-tts + ffmpeg).",
+  "scripts": {
+    "full": "node produce.mjs full",
+    "short": "node produce.mjs short"
+  },
+  "dependencies": {
+    "playwright": "1.56.1"
+  }
+}
