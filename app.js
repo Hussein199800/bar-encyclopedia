@@ -583,8 +583,10 @@ function missingIn(d, node) {
     if (!d.missing.length || !node.articles.length) return "";
     const nums = node.articles.map(function (k) { return parseInt(d.byKey[k].num, 10); }).filter(function (n) { return !isNaN(n); });
     if (!nums.length) return "";
-    const max = Math.max.apply(null, nums);
-    const after = d.missing.filter(function (m) { return m > max && !d.byKey[String(m)] && (d.missing.indexOf(m - 1) !== -1 || m === max + 1); });
+    const min = Math.min.apply(null, nums), max = Math.max.apply(null, nums);
+    /* الناقصة داخل مدى هذا الموضع، ثم السلسلة المتصلة التي تلي آخر مادة فيه فقط */
+    const after = d.missing.filter(function (m) { return m > min && m < max && !d.byKey[String(m)]; });
+    for (let m = max + 1; d.missing.indexOf(m) !== -1 && !d.byKey[String(m)]; m++) after.push(m);
     return after.map(function (m) { return '<span class="missing" title="غير موجودة في النسخة المرفقة">' + m + "؟</span>"; }).join("");
 }
 
